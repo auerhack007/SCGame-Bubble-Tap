@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>SC Tap</title>
+    <link rel="preconnect" href="https://telegram.org" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://telegram.org/js/games.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- Фоновые декоративные слои -->
+    <div class="bg-stars"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <!-- CANVAS игры -->
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-left">
+            <div id="hudScore" class="chip">🏆 <span id="score">0</span></div>
+        </div>
+        <div class="hud-right">
+            <div class="timer-bar">
+                <div id="timer-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Стартовый «bottom sheet» -->
+    <div id="overlay" class="overlay overlay--open">
+        <div class="overlay__top">
+            <div class="profile-avatar"><img id="meAvatarTop" alt=""></div>
+            <button id="topbtn" class="chip chip--cta" title="ТОП-20">🏆 ТОП-20</button>
+        </div>
+
+        <div class="logo">
+            <img src="images/logo.png" alt="Game Logo">
+        </div>
+
+        <div class="sheet">
+            <div class="sheet__grab"></div>
+
+            <div class="brand">
+                <img class="brand__icon" src="images/icon_game.png" alt="Game Icon">
+                <div class="brand__text">
+                    <h1>Bubble Tap</h1>
+                    <p>Попадай по цели быстрее — время убывает!</p>
+                </div>
+            </div>
+
+            <div class="stats-mini">
+                <div class="stat">
+                    <div class="k">⚡</div>
+                    <div class="v">Реакция</div>
+                </div>
+                <div class="sep"></div>
+                <div class="stat">
+                    <div class="k">🎯</div>
+                    <div class="v">Точность</div>
+                </div>
+                <div class="sep"></div>
+                <div class="stat">
+                    <div class="k">⏱️</div>
+                    <div class="v">Скорость</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="start" class="btn btn--primary">Играть</button>
+                <button id="invite" class="btn btn--ghost">Отправить игру</button>
+                <button id="how" class="btn btn--flat">Как играть?</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameover" class="hide gameover">
+        <div class="card">
+            <h2>Игра окончена</h2>
+            <p>Ваш счёт: <b id="final-score">0</b></p>
+
+            <div class="row" style="margin-top:12px;">
+                <button id="again" class="btn btn--primary">Ещё раз</button>
+                <button id="share" class="btn btn--ghost">Поделиться</button>
+            </div>
+
+            <!-- новая кнопка -->
+            <button id="to-menu" class="btn btn--flat btn--full" style="margin-top:12px;">
+                В меню
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Модалка «Как играть?» -->
+    <div id="how-modal" class="modal hide">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>Как играть</h3>
+                <button id="modal-close" class="x">✕</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>Тапайте по «голове» на экране.</li>
+                    <li>Каждая следующая цель живёт меньше — торопитесь.</li>
+                    <li>Попадание: +1 очко. Промах урезает время.</li>
+                    <li>Игра со звуком интереснее 🔊</li>
+                </ul>
+            </div>
+            <div class="modal-foot">
+                <button id="modal-ok" class="btn btn--primary">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТОП-20 -->
+    <div id="leaders-panel" class="panel hide">
+        <div class="panel-card">
+            <div class="panel-head">
+                <h3>ТОП-20 игроков</h3>
+                <button id="close-top" class="x">✕</button>
+            </div>
+            <div id="leaders-list" class="panel-body"></div>
+        </div>
+    </div>
+
+    <script src="sfx.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>

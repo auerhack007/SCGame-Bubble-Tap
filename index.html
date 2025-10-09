@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SCGame</title>
+    <link rel="preconnect" href="https://telegram.org" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://telegram.org/js/games.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- Canvas для игры -->
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div style="position:fixed;left:16px;top:16px;z-index:5;display:flex;gap:10px;align-items:center;">
+            <div id="hudScore" style="background:#ffffff14;padding:6px 10px;border-radius:12px;font-weight:800">
+                🏆 <span id="score">0</span>
+            </div>
+        </div>
+        <div style="position:fixed;right:16px;top:20px;z-index:5;">
+            <div style="width:120px;height:10px;background:#ffffff1f;border-radius:999px;overflow:hidden">
+                <div id="timer-fill"
+                    style="height:100%;width:100%;background:linear-gradient(90deg,#55ddff,#ff5cf0);transform-origin:left center">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Твой стартовый экран -->
+    <div class="overlay" id="overlay">
+        <div class="overlay__top">
+            <div class="profile-avatar">
+                <img id="meAvatarTop" alt="">
+            </div>
+            <button id="topbtn" class="topbtn__css" title="ТОП-20">🏆 ТОП-20</button>
+        </div>
+        <div class="overlay__menu">
+            <div class="overlay__icon">
+                <img class="overlay__icon-image" src="public/images/icon_game.png" alt="Game Icon">
+            </div>
+            <button id="how" class="invite-head__how" aria-label="Как играть">?</button>
+            <div class="invite-htexts">
+                <h1 class="invite-title">Веди за собой</h1>
+                <div class="invite-sub">Финишируй первым и получи бонус!</div>
+            </div>
+            <div class="game-actions">
+                <button id="invite" class="game-btn game-btn--outline">ОТПРАВИТЬ ИГРУ</button>
+                <button id="start" class="game-btn game-btn--play">ИГРАТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран Game Over -->
+    <div id="gameover" class="hide gameover">
+        <h2 style="margin-bottom:16px;">Игра окончена</h2>
+        <p>Ваш счёт: <b id="final-score">0</b></p>
+
+        <div class="gameover__btns"
+            style="margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:center;">
+            <button id="again" class="game-btn game-btn--play" style="width:200px;">Ещё раз</button>
+            <button id="share" class="game-btn game-btn--outline" style="width:200px;">Поделиться</button>
+        </div>
+    </div>
+
+
+    <!-- Модалка "Как играть?" -->
+    <div id="how-modal" class="modal hide"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:30;display:grid;place-items:center;">
+        <div style="background:#1e2a45;color:#fff;padding:20px;border-radius:16px;max-width:420px;">
+            <h3>Как играть</h3>
+            <ul style="margin-left:16px;margin-top:10px;line-height:1.5">
+                <li>Нажимайте на «голову».</li>
+                <li>Каждая следующая цель живёт меньше.</li>
+                <li>Попадание: +1 очко. Промах сокращает время.</li>
+            </ul>
+            <div style="margin-top:20px;text-align:right;">
+                <button id="modal-ok" class="game-btn game-btn--play">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель ТОП-20 -->
+    <div id="leaders-panel" class="hide"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:grid;place-items:center;">
+        <div
+            style="width:min(520px,92vw);max-height:80vh;background:#1a2235;color:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;display:grid;grid-template-rows:auto 1fr;">
+            <div
+                style="padding:12px 14px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
+                <h3 style="margin:0">ТОП-20 игроков</h3>
+                <button id="close-top"
+                    style="border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:700">✕</button>
+            </div>
+            <div id="leaders-list" style="padding:8px;overflow:auto;"></div>
+        </div>
+    </div>
+
+    <script src="sfx.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>

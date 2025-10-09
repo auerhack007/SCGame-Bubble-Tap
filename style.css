@@ -1,0 +1,169 @@
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat Alternates", sans-serif;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+
+body {
+    margin: 0;
+    background: radial-gradient(1000px 600px at 20% 10%, #0e1533 0, #090d1a 50%, #05070f 100%);
+    color: #fff;
+    min-height: 100vh;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+
+.overlay__top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+}
+
+.profile-avatar {
+    width: 34px;
+    height: 34px;
+    overflow: hidden;
+    background: #eee;
+    border-radius: 50%;
+}
+
+.topbtn__css {
+    padding: 0 12px;
+    height: 34px;
+    font-size: 14px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.overlay__menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(178deg, rgb(46, 130, 246) 0%, rgba(0, 0, 0, 1) 100%);
+    padding: 48px 16px 32px 16px;
+    border-radius: 32px 32px 0 0;
+    border-top: solid #82b7ff 3px;
+    gap: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.overlay__icon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay__icon-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 22px;
+    border: 4px solid #fff;
+    background: #fff;
+}
+
+.invite-head {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.invite-head__how {
+    position: absolute;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+    background-color: #ffffff22;
+    z-index: 10;
+    top: 12px;
+    left: 12px;
+}
+
+.invite-htexts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.invite-title {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.invite-sub {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.invite-avatars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-btn {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    outline: unset;
+    border: unset;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.game-btn--outline {
+    border: solid 2px #fff7;
+    background: none;
+}
+
+.game-btn--play {
+    background: #6BC348;
+    color: #434b40;
+    font-weight: 700;
+    -webkit-box-shadow: 0px -4px 2px 0px rgb(0 0 0 / 25%) inset;
+    -moz-box-shadow: 0px -4px 2px 0px rgb(0 0 0 / 25%) inset;
+    box-shadow: 0px -4px 2px 0px rgb(0 0 0 / 25%) inset;
+}
