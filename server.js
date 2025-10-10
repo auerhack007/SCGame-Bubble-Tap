@@ -4,6 +4,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const fetch = require('node-fetch');
 const { Telegraf, Markup } = require('telegraf');
 
 // ── ENV ───────────────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ app.post('/api/score', async (req, res) => {
     const apiPayload = {
       user_id: data.user_id,
       score: Math.max(0, Math.floor(score)),
-      force: false,                // ВАЖНО: не понижаем рекорд
+      force: false,
       disable_edit_message: false,
     };
 
@@ -183,14 +184,23 @@ app.get('/api/me-avatar', async (req, res) => {
   }
 });
 
-// ── MISC ─────────────────────────────────────────────────────────────────────
+// ── KEEP-ALIVE (не даём Render заснуть) ──────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
+
+// каждые 10 минут посылаем ping на GAME_URL/api/ping
+if (process.env.GAME_URL && process.env.GAME_URL.includes('render.com')) {
+  setInterval(() => {
+    fetch(`${process.env.GAME_URL}/api/ping`)
+      .then(res => console.log('Keep-alive ping:', res.status))
+      .catch(err => console.warn('Keep-alive failed:', err.message));
+  }, 10 * 60 * 1000);
+}
 
 // ── START ────────────────────────────────────────────────────────────────────
 bot.launch();
 app.listen(PORT, () => {
-  console.log(`HTTP server running: http://localhost:${PORT}`);
-  console.log(`Game URL for Telegram: ${GAME_URL}/index.html`);
+  console.log(`✅ HTTP server running on port ${PORT}`);
+  console.log(`🌐 Game URL: ${GAME_URL}/index.html`);
 });
 
 process.once('SIGINT',  () => bot.stop('SIGINT'));
