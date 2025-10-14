@@ -42,6 +42,7 @@ bot.start(async (ctx) => {
     reply_markup: Markup.inlineKeyboard([[Markup.button.game('▶️ Играть')]]),
   });
 });
+
 bot.command('play', async (ctx) => {
   await ctx.replyWithGame(GAME_SHORT_NAME, {
     reply_markup: Markup.inlineKeyboard([[Markup.button.game('▶️ Играть')]]),
@@ -109,27 +110,31 @@ app.post('/api/score', async (req, res) => {
   }
 });
 
-// ── HIGHSCORES ────────────────────────────────────────────────────────────────
+// ── HIGHSCORES (глобальный или чатовый) ───────────────────────────────────────
 app.get('/api/highscores', async (req, res) => {
   try {
     const { token } = req.query;
-    if (typeof token !== 'string') return res.status(400).json({ ok: false, error: 'No token' });
+    if (typeof token !== 'string') {
+      return res.status(400).json({ ok: false, error: 'No token' });
+    }
 
     let data;
     try { data = jwt.verify(token, JWT_SECRET); }
     catch { return res.status(401).json({ ok: false, error: 'Bad token' }); }
 
     const apiPayload = { user_id: data.user_id };
-    if (data.inline_message_id) apiPayload.inline_message_id = data.inline_message_id;
-    else if (data.chat_id && data.message_id) {
+    let scope = 'global'; // по умолчанию глобальный рейтинг
+
+    if (data.inline_message_id) {
+      apiPayload.inline_message_id = data.inline_message_id;
+    } else if (data.chat_id && data.message_id) {
       apiPayload.chat_id = data.chat_id;
       apiPayload.message_id = data.message_id;
-    } else {
-      return res.status(400).json({ ok: false, error: 'No message context' });
+      scope = 'chat'; // если есть chat_id — рейтинг чата
     }
 
     const table = await bot.telegram.callApi('getGameHighScores', apiPayload);
-    res.json({ ok: true, result: table });
+    res.json({ ok: true, scope, result: table });
   } catch (e) {
     console.error('getGameHighScores error', e);
     res.status(500).json({ ok: false, error: 'getGameHighScores failed' });
@@ -184,10 +189,9 @@ app.get('/api/me-avatar', async (req, res) => {
   }
 });
 
-// ── KEEP-ALIVE (не даём Render заснуть) ──────────────────────────────────────
+// ── KEEP-ALIVE (Render / Vercel) ─────────────────────────────────────────────
 app.get('/api/ping', (_req, res) => res.json({ ok: true }));
 
-// каждые 10 минут посылаем ping на GAME_URL/api/ping
 if (process.env.GAME_URL && process.env.GAME_URL.includes('render.com')) {
   setInterval(() => {
     fetch(`${process.env.GAME_URL}/api/ping`)
