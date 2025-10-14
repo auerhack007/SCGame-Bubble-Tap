@@ -411,11 +411,22 @@
       const r = await fetch('/api/highscores?token=' + encodeURIComponent(token));
       const d = await r.json();
       if (!d.ok || !Array.isArray(d.result)) throw 0;
-      leadersList.innerHTML = d.result.slice(0,limit).map((row,i)=>{
+
+      const scope = d.scope || 'global';
+      const headerHtml = `<div class="leaders-header" style="padding:8px 12px;font-weight:600;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:6px;">
+        ${scope === 'chat' ? '💬 Топ игроков этого чата' : '🌍 Глобальный рейтинг'}
+      </div>`;
+
+      leadersList.innerHTML = headerHtml + (d.result.slice(0,limit).map((row,i)=>{
         const name = (row.user?.username ? '@'+row.user.username : `${row.user?.first_name||''} ${row.user?.last_name||''}`.trim()) || 'Игрок';
-        return `<div class="row"><div>${i+1}.</div><div>${esc(name)}</div><div>🏆 ${row.score}</div></div>`;
-      }).join('') || '<div style="opacity:.7;padding:8px">Пока пусто</div>';
-    } catch {
+        return `<div class="row" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin:4px 0;background: ${i===0 ? 'linear-gradient(90deg,#00000022,#ffd70022)' : 'transparent'}">
+          <div style="width:28px;text-align:right;font-weight:600">${i+1}.</div>
+          <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</div>
+          <div style="margin-left:8px;white-space:nowrap">🏆 ${row.score}</div>
+        </div>`;
+      }).join('') || '<div style="opacity:.7;padding:8px">Пока пусто</div>');
+
+    } catch (err) {
       leadersList.innerHTML = '<div style="opacity:.75;padding:8px">Не удалось загрузить рейтинг</div>';
     }
   }
