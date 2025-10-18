@@ -28,13 +28,14 @@ body {
     -webkit-text-size-adjust: 100%;
 }
 
-body.bonus-mode {
-  animation: bonusFlash 0.5s infinite alternate;
+.bonus-mode {
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, violet) !important;
+  animation: bonusGlow 1s infinite;
 }
-
-@keyframes bonusFlash {
-  from { background-color: #202040; }
-  to { background-color: #ff00aa; }
+@keyframes bonusGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+  100% { filter: brightness(1); }
 }
 
 
