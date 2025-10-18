@@ -46,6 +46,13 @@
   const leaders = $('#leaders-panel');
   const leadersList = $('#leaders-list');
   const btnCloseTop = $('#close-top');
+  // Additional UI elements from the conflicting code
+  const screenGame = $('#game-screen') || canvas; // Fallback to canvas if not found
+  const screenMenu = $('#menu-screen') || overlay; // Fallback to overlay if not found
+  const screenGameOver = $('#gameover-screen') || gameover; // Fallback to gameover if not found
+  const uiScore = $('#ui-score') || scoreEl; // Fallback to scoreEl if not found
+  const uiLevel = $('#ui-level'); // No fallback, as it’s not in the original code
+  const uiFinalScore = $('#ui-final-score') || finalScoreEl; // Fallback to finalScoreEl
 
   // ---------- Utils ----------
   const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -117,7 +124,10 @@
   };
 
   const LS_BEST = 'scgame_best';
-  const updateHUD = () => { scoreEl.textContent = state.score; };
+  const updateHUD = () => { 
+    if (scoreEl) scoreEl.textContent = state.score;
+    if (uiScore) uiScore.textContent = state.score; // Update both score elements
+  };
   const getLevel = score => Math.floor(score / 10);
 
   function approachHue(current, target, t){
@@ -183,6 +193,7 @@
         if(newLevel!==state.level){
           state.level=newLevel;
           state.currentLife=Math.max(state.minLifetime,state.currentLife*state.levelLifeFactor);
+          if (uiLevel) uiLevel.textContent = state.level + 1; // Update level display
         }
       }
       if(state.score===40 && !state.bonusActive){
@@ -201,10 +212,13 @@
     state.bonusActive = true;
     state.bonusEndTime = performance.now() + 5000;
     window.SFX?.start?.();
+    Haptics.start();
+    document.body.classList.add('bonus-mode'); // Add visual effect
   }
 
   function endBonusMode(){
     state.bonusActive = false;
+    document.body.classList.remove('bonus-mode'); // Remove visual effect
     schedule();
   }
 
@@ -255,27 +269,53 @@
 
   // ---------- Start / End ----------
   function startGame(){
+    hide(screenMenu);
+    show(screenGame);
+    hide(screenGameOver);
     overlay.classList.add('overlay--closed');
     hide(gameover);
-    state.running=true; state.score=0; state.level=0; state.particles.length=0;
-    state.shakeT=0; state.hue=state.baseHue; state.bgHueApplied=NaN;
-    state.currentLife=state.baseLifetime; state.bonusActive=false;
-    applyBackground(state.hue); spawn(); schedule(); updateHUD();
-    window.SFX?.start?.(); Haptics.start();
+    state.running=true; 
+    state.score=0; 
+    state.level=0; 
+    state.particles.length=0;
+    state.shakeT=0; 
+    state.hue=state.baseHue; 
+    state.bgHueApplied=NaN;
+    state.currentLife=state.baseLifetime; 
+    state.bonusActive=false;
+    applyBackground(state.hue); 
+    spawn(); 
+    schedule(); 
+    updateHUD();
+    window.SFX?.start?.(); 
+    Haptics.start();
   }
   function endGame(){
     state.running=false;
     try{ if(state.score > Number(localStorage.getItem(LS_BEST)||0)) localStorage.setItem(LS_BEST,String(state.score)); }catch{}
     if(finalScoreEl) finalScoreEl.textContent=state.score;
-    show(gameover); window.SFX?.fail?.(); Haptics.over();
+    if(uiFinalScore) uiFinalScore.textContent=state.score; // Update both final score elements
+    hide(screenGame);
+    show(screenGameOver);
+    show(gameover); 
+    window.SFX?.fail?.(); 
+    Haptics.over();
     if(token){
       fetch('/api/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,score:state.score})}).catch(()=>{});
     }
   }
   function openMainMenu(){
-    state.running=false; state.circle=null; state.particles.length=0; state.shakeT=0;
-    canvas.style.transform=''; timerFill.style.transform='scaleX(1)';
-    overlay.classList.remove('overlay--closed'); hide(gameover);
+    state.running=false; 
+    state.circle=null; 
+    state.particles.length=0; 
+    state.shakeT=0;
+    canvas.style.transform=''; 
+    timerFill.style.transform='scaleX(1)';
+    overlay.classList.remove('overlay--closed'); 
+    hide(gameover);
+    hide(screenGame);
+    hide(screenGameOver);
+    show(screenMenu);
   }
 
   // ---------- Share ----------
@@ -324,142 +364,14 @@
   function openLeaders(){ show(leaders); loadLeaders(); }
   function closeLeaders(){ hide(leaders); }
 
-    // ---------- UI ----------
+  // ---------- UI ----------
   btnStart?.addEventListener('click', startGame);
   btnAgain?.addEventListener('click', startGame);
-  btnMenu?.addEventListener('click', () => {
-    screenGame.classList.add('hidden');
-    screenMenu.classList.remove('hidden');
-  });
-
-  // ---------- Инициализация ----------
-  function startGame() {
-    score = 0;
-    level = 1;
-    speedMultiplier = 1;
-    bubbles.length = 0;
-    gameOver = false;
-    bonusActive = false;
-    screenMenu.classList.add('hidden');
-    screenGameOver.classList.add('hidden');
-    screenGame.classList.remove('hidden');
-    loop(performance.now());
-  }
-
-  // ---------- Клик по экрану ----------
-  canvas.addEventListener('click', (e) => {
-    if (gameOver) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    for (let i = bubbles.length - 1; i >= 0; i--) {
-      if (bubbles[i].clicked(x, y)) {
-        bubbles.splice(i, 1);
-        vibrate(30);
-        score++;
-
-        // Обновляем счётчик в UI
-        uiScore.textContent = score;
-
-        // Проверка уровня
-        if (score % 10 === 0 && !bonusActive) {
-          level++;
-          uiLevel.textContent = level;
-          speedMultiplier *= 1.15;
-        }
-
-        // Активация бонуса при 40 очках
-        if (score === 40 && !bonusActive) {
-          activateBonus();
-        }
-        break;
-      }
-    }
-  });
-
-  // ---------- Бонусная функция ----------
-  function activateBonus() {
-    bonusActive = true;
-    bonusStartTime = Date.now();
-    vibrate(100);
-
-    // Визуальный эффект бонуса
-    document.body.classList.add('bonus-mode');
-    console.log('🔥 Бонус активирован на 5 секунд!');
-
-    // Через 5 секунд бонус заканчивается
-    setTimeout(() => {
-      bonusActive = false;
-      document.body.classList.remove('bonus-mode');
-      speedMultiplier *= 1.2;
-      console.log('✨ Бонус завершён!');
-    }, BONUS_DURATION);
-  }
-
-  // ---------- Конец игры ----------
-  function showGameOver() {
-    gameOver = true;
-    screenGame.classList.add('hidden');
-    screenGameOver.classList.remove('hidden');
-    uiFinalScore.textContent = score;
-  }
-
-  // ---------- Переливающийся прогресс таймер при бонусе ----------
-  function drawBonusTimer() {
-    const elapsed = Date.now() - bonusStartTime;
-    const progress = Math.min(elapsed / BONUS_DURATION, 1);
-    const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    gradient.addColorStop(0, 'red');
-    gradient.addColorStop(0.2, 'orange');
-    gradient.addColorStop(0.4, 'yellow');
-    gradient.addColorStop(0.6, 'green');
-    gradient.addColorStop(0.8, 'blue');
-    gradient.addColorStop(1, 'violet');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, height - 20, width * (1 - progress), 10);
-  }
-
-  // ---------- Основной цикл ----------
-  function loop(timestamp) {
-    if (gameOver) return;
-
-    ctx.clearRect(0, 0, width, height);
-
-    // Спавн пузырей
-    if (timestamp - lastSpawn > 800 / speedMultiplier) {
-      bubbles.push(new Bubble());
-      lastSpawn = timestamp;
-    }
-
-    // Обновление пузырей
-    for (let i = bubbles.length - 1; i >= 0; i--) {
-      const b = bubbles[i];
-      b.update();
-      b.draw();
-
-      // Если пузырь ушёл вверх — проигрыш (если не бонус)
-      if (b.y + b.radius < 0) {
-        if (!bonusActive) {
-          showGameOver();
-          return;
-        }
-        bubbles.splice(i, 1);
-      }
-    }
-
-    // Отрисовка UI
-    drawScore();
-
-    // Если бонус активен — отрисовываем переливающийся таймер
-    if (bonusActive) drawBonusTimer();
-
-    requestAnimationFrame(loop);
-  }
-
-  // ---------- Вибрация ----------
-  function vibrate(ms = 40) {
-    if (window.navigator.vibrate) window.navigator.vibrate(ms);
-  }
+  btnMenu?.addEventListener('click', openMainMenu);
+  btnShare?.addEventListener('click', share);
+  btnTop?.addEventListener('click', openLeaders);
+  btnCloseTop?.addEventListener('click', closeLeaders);
+  btnOk?.addEventListener('click', () => hide(howModal));
+  btnX?.addEventListener('click', () => hide(howModal));
+  btnHow?.addEventListener('click', () => show(howModal));
 })();
