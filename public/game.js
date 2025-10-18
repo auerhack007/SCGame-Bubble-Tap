@@ -37,8 +37,8 @@
   const timerFill = $('#timer-fill');
   const gameover = $('#gameover');
   const finalScoreEl = $('#final-score');
-  const btnAgain = $('#again');
   const btnShare = $('#share');
+  const btnAgain = $('#again');
   const btnMenu = $('#to-menu');
   const howModal = $('#how-modal');
   const btnOk = $('#modal-ok');
@@ -51,7 +51,6 @@
   const screenMenu = $('#menu-screen') || overlay;
   const screenGameOver = $('#gameover-screen') || gameover;
   const uiScore = $('#ui-score') || scoreEl;
-  const uiLevel = $('#ui-level');
   const uiFinalScore = $('#ui-final-score') || finalScoreEl;
 
   // --- Утилиты --- //
@@ -193,7 +192,6 @@
         if(newLevel!==state.level){
           state.level=newLevel;
           state.currentLife=Math.max(state.minLifetime,state.currentLife*state.levelLifeFactor);
-          if (uiLevel) uiLevel.textContent = state.level + 1;
         }
       }
       if(state.score===40 && !state.bonusActive){
@@ -232,8 +230,8 @@
         const timeLeft = Math.max(0, state.bonusEndTime - now);
         const k = timeLeft / 5000;
         timerFill.style.transform = `scaleX(${k})`;
-        // Эффект сгорания: градиент от красного к жёлтому с анимацией
-        const offset = (now / 500) % 360;
+        // Эффект сгорания: быстрый градиент для заметности
+        const offset = (now / 200) % 360;
         timerFill.style.background = `linear-gradient(90deg, hsl(${(offset) % 360}, 90%, 50%), hsl(${(offset + 30) % 360}, 90%, 60%), hsl(${(offset + 60) % 360}, 90%, 70%))`;
         if(timeLeft <= 0) endBonusMode();
       } else {
@@ -317,9 +315,9 @@
     show(screenMenu);
   }
 
-  // --- Поделиться результатом --- //
-  function share(){
-    const shareText = `Мой счёт: ${state.score} в SC Tap!`;
+  // --- Отправить игру --- //
+  function inviteGame(){
+    const shareText = `Мой счёт: ${state.score} в SC Tap! Попробуй побить мой рекорд!`;
     const shareUrl = location.href.split('?')[0];
     try {
       if (TelegramGameProxy?.shareScore) TelegramGameProxy.shareScore();
@@ -348,11 +346,7 @@
       if(!d.ok||!Array.isArray(d.result)) throw 0;
       leadersList.innerHTML=d.result.slice(0,limit).map((row,i)=>{
         const name=(row.user?.username?'@'+row.user.username:`${row.user?.first_name||''} ${row.user?.last_name||''}`.trim())||'Игрок';
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin:4px 0;background:${i===0?'linear-gradient(90deg,#00000022,#ffd70022)':'transparent'}">
-          <div style="width:28px;text-align:right;font-weight:600">${i+1}.</div>
-          <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
-          <div style="font-weight:600">${row.score}</div>
-        </div>`;
+        return `<div class="row"><div style="width:28px;text-align:right;font-weight:600">${i+1}.</div><div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div><div style="font-weight:600">${row.score}</div></div>`;
       }).join('');
     }catch{leadersList.innerHTML='<div style="opacity:.75;padding:8px">Ошибка загрузки :(</div>';}
   }
@@ -363,10 +357,34 @@
   btnStart?.addEventListener('click', startGame);
   btnAgain?.addEventListener('click', startGame);
   btnMenu?.addEventListener('click', openMainMenu);
-  btnShare?.addEventListener('click', share);
+  btnShare?.addEventListener('click', inviteGame);
+  btnInvite?.addEventListener('click', inviteGame);
   btnTop?.addEventListener('click', openLeaders);
   btnCloseTop?.addEventListener('click', closeLeaders);
   btnOk?.addEventListener('click', () => hide(howModal));
   btnX?.addEventListener('click', () => hide(howModal));
   btnHow?.addEventListener('click', () => show(howModal));
+
+  // --- Звуки --- //
+  const AudioC = window.AudioContext || window.webkitAudioContext;
+  if (AudioC) {
+    const ac = new AudioContext();
+    function beep(f, dur, v=0.15){
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.frequency.value = f;
+      o.type = 'sine';
+      o.connect(g);
+      g.connect(ac.destination);
+      g.gain.value = v;
+      o.start();
+      o.stop(ac.currentTime + dur);
+    }
+    window.SFX = {
+      pop: ()=>beep(880,0.06),
+      miss:()=>beep(120,0.15),
+      fail:()=>beep(80,0.3),
+      start:()=>beep(440,0.12)
+    };
+  }
 })();
