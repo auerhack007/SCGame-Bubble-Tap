@@ -1,6 +1,6 @@
 // public/game.js
 
-// --- Anti-zoom (pinch, ctrl+wheel, double-tap) --- //
+// --- Запрет масштабирования (пинч, ctrl+колесо, двойное касание) --- //
 (() => {
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => {
     document.addEventListener(ev, e => e.preventDefault(), { passive: false });
@@ -23,7 +23,7 @@
 })();
 
 (() => {
-  // ---------- DOM ----------
+  // --- DOM элементы --- //
   const $ = s => document.querySelector(s);
   const canvas = $('#game');
   const ctx = canvas.getContext('2d');
@@ -46,15 +46,15 @@
   const leaders = $('#leaders-panel');
   const leadersList = $('#leaders-list');
   const btnCloseTop = $('#close-top');
-  // Additional UI elements from the conflicting code
-  const screenGame = $('#game-screen') || canvas; // Fallback to canvas if not found
-  const screenMenu = $('#menu-screen') || overlay; // Fallback to overlay if not found
-  const screenGameOver = $('#gameover-screen') || gameover; // Fallback to gameover if not found
-  const uiScore = $('#ui-score') || scoreEl; // Fallback to scoreEl if not found
-  const uiLevel = $('#ui-level'); // No fallback, as it’s not in the original code
-  const uiFinalScore = $('#ui-final-score') || finalScoreEl; // Fallback to finalScoreEl
+  // Резервные элементы интерфейса
+  const screenGame = $('#game-screen') || canvas;
+  const screenMenu = $('#menu-screen') || overlay;
+  const screenGameOver = $('#gameover-screen') || gameover;
+  const uiScore = $('#ui-score') || scoreEl;
+  const uiLevel = $('#ui-level');
+  const uiFinalScore = $('#ui-final-score') || finalScoreEl;
 
-  // ---------- Utils ----------
+  // --- Утилиты --- //
   const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   const qs = new URLSearchParams(location.search);
   const getToken = () => qs.get('token');
@@ -72,7 +72,7 @@
   addEventListener('resize', resize);
   resize();
 
-  // ---------- Haptics ----------
+  // --- Виброотклик --- //
   const Haptics = {
     _v(p){ try { if (navigator.vibrate) { navigator.vibrate(p); return true; } } catch{} return false; },
     _tryTelegram(fnName, ...args) {
@@ -89,7 +89,7 @@
     over(){ this._tryTelegram('notificationOccurred','error')||this._v([20,40,20]); }
   };
 
-  // ---------- Avatar ----------
+  // --- Аватар игрока --- //
   const headImg = new Image();
   headImg.decoding = 'async';
   headImg.crossOrigin = 'anonymous';
@@ -99,7 +99,7 @@
   headImg.onerror = () => { if (headImg.src.includes('/api/me-avatar')) meAvatarTop.src = fallbackHead; };
   headImg.src = token ? '/api/me-avatar?token=' + encodeURIComponent(token) : fallbackHead;
 
-  // ---------- Game state ----------
+  // --- Состояние игры --- //
   const state = {
     running: false,
     score: 0,
@@ -126,7 +126,7 @@
   const LS_BEST = 'scgame_best';
   const updateHUD = () => { 
     if (scoreEl) scoreEl.textContent = state.score;
-    if (uiScore) uiScore.textContent = state.score; // Update both score elements
+    if (uiScore) uiScore.textContent = state.score;
   };
   const getLevel = score => Math.floor(score / 10);
 
@@ -142,7 +142,7 @@
     state.bgHueApplied = h;
   }
 
-  // ---------- Entities ----------
+  // --- Сущности игры --- //
   function easeOutBack(t){ const c1=1.70158, c3=c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); }
   class Target {
     constructor(x,y,r){ this.x=x; this.y=y; this.R=r; this.r=0; this.scale=0; this.glowT=Math.random()*6.28; }
@@ -169,7 +169,7 @@
   }
   const burst = (x,y)=>{ for(let i=0;i<24;i++) state.particles.push(new Particle(x,y)); };
 
-  // ---------- Spawn ----------
+  // --- Создание целей --- //
   function spawn(){
     const w=canvas.width/DPR,h=canvas.height/DPR,r=state.fixedRadius;
     state.circle = new Target(r+Math.random()*(w-2*r), r+Math.random()*(h-2*r), r);
@@ -179,7 +179,7 @@
     state.nextDeadline=performance.now()+life;
   }
 
-  // ---------- Input ----------
+  // --- Обработка ввода --- //
   canvas.addEventListener('pointerdown', e=>{
     if(!state.running) return;
     const b=canvas.getBoundingClientRect();
@@ -193,7 +193,7 @@
         if(newLevel!==state.level){
           state.level=newLevel;
           state.currentLife=Math.max(state.minLifetime,state.currentLife*state.levelLifeFactor);
-          if (uiLevel) uiLevel.textContent = state.level + 1; // Update level display
+          if (uiLevel) uiLevel.textContent = state.level + 1;
         }
       }
       if(state.score===40 && !state.bonusActive){
@@ -207,22 +207,20 @@
     }
   },{passive:true});
 
-  // ---------- Bonus Mode ----------
+  // --- Бонусный режим --- //
   function startBonusMode(){
     state.bonusActive = true;
     state.bonusEndTime = performance.now() + 5000;
     window.SFX?.start?.();
     Haptics.start();
-    document.body.classList.add('bonus-mode'); // Add visual effect
   }
 
   function endBonusMode(){
     state.bonusActive = false;
-    document.body.classList.remove('bonus-mode'); // Remove visual effect
     schedule();
   }
 
-  // ---------- Loop ----------
+  // --- Основной цикл игры --- //
   function loop(t){
     const now = t || performance.now();
     const dt = Math.min(.033, (now - state.lastTime)/1000);
@@ -234,8 +232,9 @@
         const timeLeft = Math.max(0, state.bonusEndTime - now);
         const k = timeLeft / 5000;
         timerFill.style.transform = `scaleX(${k})`;
-        const hueAnim = (now/20) % 360;
-        timerFill.style.background = `linear-gradient(90deg, hsl(${hueAnim},90%,60%), hsl(${(hueAnim+60)%360},90%,65%), hsl(${(hueAnim+120)%360},90%,60%))`;
+        // Эффект сгорания: градиент от красного к жёлтому с анимацией
+        const offset = (now / 500) % 360;
+        timerFill.style.background = `linear-gradient(90deg, hsl(${(offset) % 360}, 90%, 50%), hsl(${(offset + 30) % 360}, 90%, 60%), hsl(${(offset + 60) % 360}, 90%, 70%))`;
         if(timeLeft <= 0) endBonusMode();
       } else {
         const h1 = state.hue, h2 = (h1 + 48) % 360;
@@ -267,7 +266,7 @@
   }
   requestAnimationFrame(loop);
 
-  // ---------- Start / End ----------
+  // --- Запуск и завершение игры --- //
   function startGame(){
     hide(screenMenu);
     show(screenGame);
@@ -294,7 +293,7 @@
     state.running=false;
     try{ if(state.score > Number(localStorage.getItem(LS_BEST)||0)) localStorage.setItem(LS_BEST,String(state.score)); }catch{}
     if(finalScoreEl) finalScoreEl.textContent=state.score;
-    if(uiFinalScore) uiFinalScore.textContent=state.score; // Update both final score elements
+    if(uiFinalScore) uiFinalScore.textContent=state.score;
     hide(screenGame);
     show(screenGameOver);
     show(gameover); 
@@ -318,7 +317,7 @@
     show(screenMenu);
   }
 
-  // ---------- Share ----------
+  // --- Поделиться результатом --- //
   function share(){
     const shareText = `Мой счёт: ${state.score} в SC Tap!`;
     const shareUrl = location.href.split('?')[0];
@@ -337,7 +336,7 @@
     }
   }
 
-  // ---------- Leaders ----------
+  // --- Таблица лидеров --- //
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   async function loadLeaders(limit=20){
     if(!leadersList) return;
@@ -347,11 +346,7 @@
       const r=await fetch('/api/highscores?token='+encodeURIComponent(token));
       const d=await r.json();
       if(!d.ok||!Array.isArray(d.result)) throw 0;
-      const scope=d.scope||'global';
-      const headerHtml=`<div style="padding:8px 12px;font-weight:600;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:6px;">
-        ${scope==='chat'?'💬 Топ игроков этого чата':'🌍 Глобальный рейтинг'}
-      </div>`;
-      leadersList.innerHTML=headerHtml+d.result.slice(0,limit).map((row,i)=>{
+      leadersList.innerHTML=d.result.slice(0,limit).map((row,i)=>{
         const name=(row.user?.username?'@'+row.user.username:`${row.user?.first_name||''} ${row.user?.last_name||''}`.trim())||'Игрок';
         return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin:4px 0;background:${i===0?'linear-gradient(90deg,#00000022,#ffd70022)':'transparent'}">
           <div style="width:28px;text-align:right;font-weight:600">${i+1}.</div>
@@ -364,7 +359,7 @@
   function openLeaders(){ show(leaders); loadLeaders(); }
   function closeLeaders(){ hide(leaders); }
 
-  // ---------- UI ----------
+  // --- Интерфейс --- //
   btnStart?.addEventListener('click', startGame);
   btnAgain?.addEventListener('click', startGame);
   btnMenu?.addEventListener('click', openMainMenu);
