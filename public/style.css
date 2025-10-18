@@ -28,6 +28,16 @@ body {
     -webkit-text-size-adjust: 100%;
 }
 
+body.bonus-mode {
+  animation: bonusFlash 0.5s infinite alternate;
+}
+
+@keyframes bonusFlash {
+  from { background-color: #202040; }
+  to { background-color: #ff00aa; }
+}
+
+
 /* Кнопки/ссылки — быстрые тапы без двойного-тапа-зума */
 button,
 .game-btn,
